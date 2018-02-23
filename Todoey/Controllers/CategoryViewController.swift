@@ -8,14 +8,13 @@
 import UIKit
 import RealmSwift
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: SwipeTableViewController {
 
     let realm = try! Realm()
     var categories: Results<Category>?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
         loadCategories()
     }
 
@@ -24,10 +23,15 @@ class CategoryViewController: UITableViewController {
         return categories?.count ?? 1
     }
     
+//    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+//        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell") as! SwipeTableViewCell
+//        cell.delegate = self
+//        return cell
+//    }
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell{
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         cell.textLabel?.text = categories?[indexPath.row].name ?? "No categories added yet."
 
         return cell
@@ -46,6 +50,8 @@ class CategoryViewController: UITableViewController {
         }
     }
     
+
+    
     //MARK: - Data Manipulation Methods
     func loadCategories() {
         categories = realm.objects(Category.self)
@@ -58,15 +64,29 @@ class CategoryViewController: UITableViewController {
         do {
             try realm.write {
                 realm.add(category)
-                }
+    }
         } catch {
             print("Error saving context \(error)")
         }
         
         self.tableView.reloadData()
     }
-
     
+    
+    //MARK: - Delete Data From Swipe
+    override func updateModel(at indexPath: IndexPath) {
+        // Update our model
+        if let categoryForDeletion = categories?[indexPath.row] {
+            // handle action by updating model with deletion
+            do {
+                try realm.write {
+                    realm.delete(categoryForDeletion)
+                }
+            } catch {
+                print ("Error deleting category, \(error)")
+            }
+        }
+    }
 
     //MARK: - Add new categories
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -93,4 +113,3 @@ class CategoryViewController: UITableViewController {
     }
     
 }
-
